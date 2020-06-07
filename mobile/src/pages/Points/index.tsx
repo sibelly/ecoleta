@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Constants from 'expo-constants'
 import { Feather as Icon} from '@expo/vector-icons'
 import { Alert, View, StyleSheet, ScrollView, Text, TouchableOpacity, Image } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import MapView, { Marker } from 'react-native-maps'
 import { SvgUri } from 'react-native-svg'
 import * as Location from 'expo-location'
@@ -19,12 +19,20 @@ interface Point {
   id: number,
   name: string,
   image: string,
+  image_url: string,
   latitude: number,
   longitude: number
 }
 
+interface Params {
+  uf: string,
+  city: string
+}
+
 const Points = () => {
   const navigation= useNavigation()
+  const route = useRoute()
+  const routeParams = route.params as Params
 
   const [initialPosition, setInitialPosition] = useState<[number, number]>([0, 0])
   const [items, setItems] = useState<Item[]>([])
@@ -59,21 +67,22 @@ const Points = () => {
   useEffect(() => {
     api.get('points', {
       params: {
-        city: 'CG',
-        uf: 'MS',
-        items: [6]
+        city: routeParams.city,
+        uf: routeParams.uf,
+        items: selectedItems
       }
     }).then(response => {
+      console.log('===points => ', response.data)
       setPoints(response.data)
     })
-  }, [])
+  }, [selectedItems])
 
   function handleNavigateBack() {
     navigation.goBack()
   }
 
-  function handleNavigateToDetail() {
-    navigation.navigate('Detail')
+  function handleNavigateToDetail(id: number) {
+    navigation.navigate('Detail', { point_id: id })
   }
 
   function handleSelectItem(id: number) {
@@ -116,7 +125,7 @@ const Points = () => {
                 <Marker
                   key={String(point.id)}
                   style={styles.mapMarker}
-                  onPress={handleNavigateToDetail}
+                  onPress={() => handleNavigateToDetail(point.id)}
                   coordinate={{
                     latitude: -20.4353613,
                     longitude: -54.6204637,
@@ -125,7 +134,7 @@ const Points = () => {
                   <View style={styles.mapMarkerContainer}>
                     <Image
                       style={styles.mapMarkerImage}
-                      source={{ uri: point.image}}
+                      source={{ uri: point.image_url}}
                     ></Image>
                     <Text style={styles.mapMarkerTitle}>{point.name}</Text>
                   </View>
