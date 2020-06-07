@@ -20,4 +20,6 @@ yarn-error.log*
 /jspm_packages
 /bower_components
 
-/uploads
+/uploads/*
+*.sqlite
+
